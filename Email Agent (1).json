@@ -1,0 +1,185 @@
+{
+  "name": "Email Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ],
+          "readStatus": "unread"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8b1535cd-0945-4da0-b2e5-026f4c7ab9d2",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "HXpBxJBJ5cHmnCwC",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Role: \"You are an AI assistant designed to help me reply to emails. You should be polite, concise, and helpful.\"\n\nInstructions:\n\n\"Read the incoming email carefully.\"\n\n\"Identify the main purpose of the email.\"\n\n\"Determine if a reply is necessary.\" (You might want to add logic here, e.g., \"Only reply if the email asks a question or requires an action.\")\n\n\"Draft a suitable reply based on the email's content and the desired tone.\"\n\n\"If the email is a simple notification or does not require a response, do not generate a reply.\" (This is crucial to avoid spamming).\n\"Read this email. If a reply is necessary, generate a polite and concise response. If no reply is needed, just output 'NO_REPLY'.\"",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "eed6518f-5a4a-4301-97b5-adee297c7664",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "=$(\"Gmail Trigger\").item.json.id\n",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "senderName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sender_Name', ``, 'string') }}",
+          "replyToSenderOnly": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Reply_to_Sender_Only', ``, 'boolean') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        600,
+        280
+      ],
+      "id": "96b50e11-fa3d-456b-a628-e298dbd6cc88",
+      "name": "Reply to a message in Gmail",
+      "webhookId": "c1fad6a7-1617-4a5e-b969-6f92163ec1c0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "HXpBxJBJ5cHmnCwC",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        440,
+        280
+      ],
+      "id": "12c227c7-80f6-4ca3-a0a9-a5f3e3aa8dbe",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "uipc9eKuxyialKBR",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1000,
+        0
+      ],
+      "id": "fb556fa1-e32f-41ff-a695-75bb428db8a4",
+      "name": "Reply to a message",
+      "webhookId": "ca2fea19-aec4-45dc-91f6-d8927fea9b5d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "HXpBxJBJ5cHmnCwC",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "afb0a437-80ec-46b9-917e-3861dd1748f6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc1371284ddd8053ebe6e84933c945308cf8033dc357068178d83c6ec45e647f"
+  },
+  "id": "IQXc3IP1QFZok2sP",
+  "tags": []
+}
